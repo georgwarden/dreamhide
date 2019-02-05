@@ -11,6 +11,7 @@ import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.websocket.*
 import io.ktor.http.cio.websocket.*
+import io.ktor.request.receive
 import java.time.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -19,8 +20,14 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(Authentication) {
-        jwt("tokens") {
+
+        jwt("token-user") {
         }
+
+        jwt("token-admin") {
+
+        }
+
     }
 
     install(ContentNegotiation) {
@@ -44,10 +51,36 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/") {
+        post("/authorize") {
         }
 
-        authenticate("tokens") {
+        authenticate("token-user") {
+            route("/platform") {
+                route("/task") {
+                    get {}
+                    get("/all") {}
+                    get("/by_category") {}
+                }
+                route("/team") {
+                    get {}
+                    patch {}
+                }
+                post("/attempt") {}
+                get("/scoreboard") {}
+                get("/subscribe") {}
+            }
+        }
+
+        authenticate("token-admin") {
+            route("/admin") {
+                route("/task") {
+                    post {}
+                    get {}
+                    patch {}
+                    delete {}
+                }
+                get("/scoreboard") {}
+            }
         }
     }
 }
