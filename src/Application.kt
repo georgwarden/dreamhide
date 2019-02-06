@@ -51,7 +51,9 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        post("/authorize") {
+        get("/login") {
+        }
+        post("/logout") {
         }
 
         authenticate("token-user") {
@@ -59,14 +61,14 @@ fun Application.module(testing: Boolean = false) {
                 route("/task") {
                     get {}
                     get("/all") {}
-                    get("/by_category") {}
+                    get("/cats") {}
                 }
+                get("/user") {}
                 route("/team") {
                     get {}
-                    patch {}
+                    get("/all") {}
                 }
                 post("/attempt") {}
-                get("/scoreboard") {}
                 get("/subscribe") {}
             }
         }
@@ -75,11 +77,9 @@ fun Application.module(testing: Boolean = false) {
             route("/admin") {
                 route("/task") {
                     post {}
-                    get {}
                     patch {}
                     delete {}
                 }
-                get("/scoreboard") {}
             }
         }
     }
