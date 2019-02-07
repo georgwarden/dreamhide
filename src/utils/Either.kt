@@ -3,7 +3,7 @@ package net.rocketparty.utils
 sealed class Either<out L, out R> {
 
     fun <T> fold(ifLeft: (L) -> T, ifRight: (R) -> T): T {
-        return when(this) {
+        return when (this) {
             is Left -> ifLeft(value)
             is Right -> ifRight(value)
         }
@@ -17,6 +17,10 @@ sealed class Either<out L, out R> {
         return fold({ Left(it) }, { Right(map(it)) })
     }
 
+    fun <NL, NR> flatMap(map: (Either<L, R>) -> Either<NL, NR>): Either<NL, NR> {
+        return map(this)
+    }
+
 }
 
 class Left<L>(
@@ -27,12 +31,19 @@ class Right<R>(
     val value: R
 ) : Either<Nothing, R>()
 
-fun <R> retrieve(from: () -> R): Either<Throwable, R> {
+fun <R> recover(from: () -> R): Either<Throwable, R> {
     return try {
         Right(from())
     } catch (e: Throwable) {
         Left(e)
     }
+}
+
+fun <L, R> retrieve(condition: Boolean, ifFalse: () -> L, ifTrue: () -> R): Either<L, R> {
+    return if (condition)
+        Right(ifTrue())
+    else
+        Left(ifFalse())
 }
 
 fun <L, A> A?.wrap(ifNull: () -> L): Either<L, A> {
