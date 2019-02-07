@@ -6,8 +6,10 @@ import net.rocketparty.repository.UserRepository
 import net.rocketparty.utils.*
 
 class AuthInteractor(
-    val userRepository: UserRepository
+    private val userRepository: UserRepository
 ) {
+
+    private val hashingContext = Md5Context()
 
     fun tryAuthorize(login: String, password: String): Either<CommonError, Token> {
         return userRepository.findByName(login)
@@ -16,9 +18,9 @@ class AuthInteractor(
                 cur.fold({
                     Left(it)
                 }, { user ->
-                    retrieve(password == user.passwordHash,
+                    retrieve(hashingContext.run { password.hashed() == user.passwordHash },
                         { CommonError.BadCredentials(login, password) },
-                        { TODO() })
+                        { generateJwt(user.id) })
                 })
             }
     }
