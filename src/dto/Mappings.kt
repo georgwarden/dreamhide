@@ -1,5 +1,6 @@
 package net.rocketparty.dto
 
+import net.rocketparty.entity.Team
 import net.rocketparty.entity.User
 
 fun User.toDto(): UserDto {
@@ -7,11 +8,15 @@ fun User.toDto(): UserDto {
     return UserDto(
         model.id,
         model.name,
-        TeamDto(
-            model.team.id,
-            model.team.name,
-            model.team.avatar,
-            model.team.score
-        )
+        model.team.toDto()
+    )
+}
+
+fun Team.toDto(): TeamDto {
+    return TeamDto(
+        this.id,
+        this.name,
+        this.avatar,
+        this.score
     )
 }

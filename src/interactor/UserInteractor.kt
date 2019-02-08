@@ -12,7 +12,7 @@ class UserInteractor(
 
     fun getUser(id: Int): Either<CommonError, User> {
         return repository.findById(id)
-            .wrap { CommonError.UserNotFound }
+            .wrap { CommonError.NotFound }
     }
 
 }

@@ -1,29 +1,34 @@
 package net.rocketparty
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.auth.*
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.authenticate
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
-import io.ktor.gson.*
-import io.ktor.features.*
-import io.ktor.websocket.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.features.ContentNegotiation
+import io.ktor.features.HttpsRedirect
+import io.ktor.gson.gson
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
+import io.ktor.response.respond
+import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import net.rocketparty.di.DomainModule
 import net.rocketparty.di.RepositoryModule
-import net.rocketparty.dto.*
+import net.rocketparty.dto.AuthorizationRequest
+import net.rocketparty.dto.AuthorizationResponse
+import net.rocketparty.dto.toDto
 import net.rocketparty.entity.CommonError
 import net.rocketparty.interactor.AuthInteractor
+import net.rocketparty.interactor.TeamInteractor
 import net.rocketparty.interactor.UserInteractor
 import net.rocketparty.utils.Claims
-import org.jetbrains.exposed.sql.Database
+import net.rocketparty.utils.acquirePrincipal
 import org.koin.standalone.StandAloneContext.startKoin
-import java.time.*
+import java.time.Duration
 
 fun main(args: Array<String>) {
     val koin = startKoin(
@@ -34,11 +39,13 @@ fun main(args: Array<String>) {
     )
     val authInteractor: AuthInteractor = koin.koinContext.get()
     val userInteractor: UserInteractor = koin.koinContext.get()
+    val teamInteractor: TeamInteractor = koin.koinContext.get()
     embeddedServer(Netty) {
         module(
             true,
             authInteractor,
-            userInteractor
+            userInteractor,
+            teamInteractor
         )
     }.start(true)
     //io.ktor.server.netty.EngineMain.main(args)
@@ -48,7 +55,8 @@ fun main(args: Array<String>) {
 fun Application.module(
     testing: Boolean = false,
     authInteractor: AuthInteractor,
-    userInteractor: UserInteractor
+    userInteractor: UserInteractor,
+    teamInteractor: TeamInteractor
 ) {
     install(Authentication) {
 
@@ -82,6 +90,7 @@ fun Application.module(
     }
 
     routing {
+
         get("/login") {
             val (login, password) = call.receive<AuthorizationRequest>()
             authInteractor.tryAuthorize(login, password)
@@ -89,8 +98,10 @@ fun Application.module(
                     when (err) {
                         is CommonError.BadCredentials ->
                             call.respond(HttpStatusCode.BadRequest)
-                        is CommonError.UserNotFound ->
+                        is CommonError.NotFound ->
                             call.respond(HttpStatusCode.NotFound)
+                        else ->
+                            call.respond(HttpStatusCode.InternalServerError)
                     }
                 }, { token ->
                     call.respond(
@@ -99,6 +110,7 @@ fun Application.module(
                     )
                 })
         }
+
         post("/logout") {
         }
 
@@ -109,35 +121,57 @@ fun Application.module(
                     get("/all") {}
                     get("/cats") {}
                 }
+
                 get("/user") {
-                    val id = call.principal<JWTPrincipal>()
-                        ?.payload
-                        ?.getClaim(Claims.UserId)
-                        ?.asInt()
-                    if (id != null) {
+                    val id = acquirePrincipal<JWTPrincipal>()
+                        .payload
+                        .getClaim(Claims.UserId)
+                        .asInt()
+                    userInteractor.getUser(id)
+                        .fold({ err ->
+                            when (err) {
+                                CommonError.NotFound ->
+                                    call.respond(HttpStatusCode.NotFound)
+                                else ->
+                                    call.respond(HttpStatusCode.InternalServerError)
+                            }
+                        }, { user ->
+                            call.respond(
+                                HttpStatusCode.OK,
+                                user.toDto()
+                            )
+                        })
+                }
+
+                route("/team") {
+
+                    get {
+                        val id = acquirePrincipal<JWTPrincipal>()
+                            .payload
+                            .getClaim(Claims.UserId)
+                            .asInt()
                         userInteractor.getUser(id)
+                            .mapRight { user -> user.team }
                             .fold({ err ->
                                 when (err) {
-                                    CommonError.UserNotFound ->
+                                    CommonError.NotFound ->
                                         call.respond(HttpStatusCode.NotFound)
                                     else ->
                                         call.respond(HttpStatusCode.InternalServerError)
                                 }
-                            }, { model ->
-                                call.respond(
-                                    HttpStatusCode.OK,
-                                    model.toDto()
-                                )
+                            }, { team ->
+                                call.respond(HttpStatusCode.OK, team.toDto())
                             })
-                    } else {
-                        call.respond(HttpStatusCode.Unauthorized)
                     }
+
+                    get("/all") {
+                        teamInteractor.getAllTeams()
+                    }
+
                 }
-                route("/team") {
-                    get {}
-                    get("/all") {}
-                }
+
                 post("/attempt") {}
+
                 get("/subscribe") {}
             }
         }

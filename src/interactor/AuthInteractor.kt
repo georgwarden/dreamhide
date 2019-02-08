@@ -13,7 +13,7 @@ class AuthInteractor(
 
     fun tryAuthorize(login: String, password: String): Either<CommonError, Token> {
         return userRepository.findByName(login)
-            .wrap { CommonError.UserNotFound }
+            .wrap { CommonError.NotFound }
             .flatMap { cur ->
                 cur.fold({
                     Left(it)
