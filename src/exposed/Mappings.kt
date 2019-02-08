@@ -9,11 +9,15 @@ fun ResultRow.toUser(): User {
         this[Users.id],
         this[Users.name],
         this[Users.passwordHash],
-        Team(
-            this[Teams.id],
-            this[Teams.name],
-            this[Teams.avatar],
-            this[Teams.score]
-        )
+        this.toTeam()
+    )
+}
+
+fun ResultRow.toTeam(): Team {
+    return Team(
+        this[Teams.id],
+        this[Teams.name],
+        this[Teams.avatar],
+        this[Teams.score]
     )
 }
