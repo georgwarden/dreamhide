@@ -12,17 +12,40 @@ import io.ktor.features.*
 import io.ktor.websocket.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.receive
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import net.rocketparty.di.DomainModule
+import net.rocketparty.di.RepositoryModule
+import net.rocketparty.dto.AuthorizationRequest
+import net.rocketparty.dto.AuthorizationResponse
+import net.rocketparty.entity.CommonError
+import net.rocketparty.interactor.AuthInteractor
+import org.jetbrains.exposed.sql.Database
 import org.koin.standalone.StandAloneContext.startKoin
 import java.time.*
 
 fun main(args: Array<String>) {
-    startKoin(listOf())
-    io.ktor.server.netty.EngineMain.main(args)
+    val koin = startKoin(
+        listOf(
+            RepositoryModule,
+            DomainModule
+        )
+    )
+    val authInteractor: AuthInteractor = koin.koinContext.get()
+    embeddedServer(Netty) {
+        module(
+            true,
+            authInteractor
+        )
+    }.start(true)
+    //io.ktor.server.netty.EngineMain.main(args)
 }
 
-@Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+fun Application.module(
+    testing: Boolean = false,
+    authInteractor: AuthInteractor
+) {
     install(Authentication) {
 
         jwt("token-user") {
@@ -56,6 +79,21 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         get("/login") {
+            val (login, password) = call.receive<AuthorizationRequest>()
+            authInteractor.tryAuthorize(login, password)
+                .fold({ err ->
+                    when (err) {
+                        is CommonError.BadCredentials ->
+                            call.respond(HttpStatusCode.BadRequest)
+                        is CommonError.UserNotFound ->
+                            call.respond(HttpStatusCode.NotFound)
+                    }
+                }, { token ->
+                    call.respond(
+                        HttpStatusCode.OK,
+                        AuthorizationResponse(token)
+                    )
+                })
         }
         post("/logout") {
         }
