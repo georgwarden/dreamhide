@@ -40,4 +40,7 @@ dependencies {
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 
     compile "org.jetbrains.exposed:exposed:$exposed_version"
+
+
+    compile "org.koin:koin-core:$koin_version"
 }

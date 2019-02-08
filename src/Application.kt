@@ -12,9 +12,13 @@ import io.ktor.features.*
 import io.ktor.websocket.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.receive
+import org.koin.standalone.StandAloneContext.startKoin
 import java.time.*
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>) {
+    startKoin(listOf())
+    io.ktor.server.netty.EngineMain.main(args)
+}
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
