@@ -8,7 +8,7 @@ data class TeamDto(
     @SerializedName("name")
     val name: String,
     @SerializedName("avatar")
-    val avatar: String,
+    val avatar: String?,
     @SerializedName("score")
     val score: Int
 )

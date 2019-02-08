@@ -2,9 +2,7 @@ package net.rocketparty.entity
 
 sealed class CommonError {
 
-    data class UserNotFound(
-        val login: String
-    ) : CommonError()
+    object UserNotFound : CommonError()
 
     data class BadCredentials(
         val login: String,

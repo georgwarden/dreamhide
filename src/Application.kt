@@ -16,10 +16,11 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import net.rocketparty.di.DomainModule
 import net.rocketparty.di.RepositoryModule
-import net.rocketparty.dto.AuthorizationRequest
-import net.rocketparty.dto.AuthorizationResponse
+import net.rocketparty.dto.*
 import net.rocketparty.entity.CommonError
 import net.rocketparty.interactor.AuthInteractor
+import net.rocketparty.interactor.UserInteractor
+import net.rocketparty.utils.Claims
 import org.jetbrains.exposed.sql.Database
 import org.koin.standalone.StandAloneContext.startKoin
 import java.time.*
@@ -32,10 +33,12 @@ fun main(args: Array<String>) {
         )
     )
     val authInteractor: AuthInteractor = koin.koinContext.get()
+    val userInteractor: UserInteractor = koin.koinContext.get()
     embeddedServer(Netty) {
         module(
             true,
-            authInteractor
+            authInteractor,
+            userInteractor
         )
     }.start(true)
     //io.ktor.server.netty.EngineMain.main(args)
@@ -44,7 +47,8 @@ fun main(args: Array<String>) {
 @kotlin.jvm.JvmOverloads
 fun Application.module(
     testing: Boolean = false,
-    authInteractor: AuthInteractor
+    authInteractor: AuthInteractor,
+    userInteractor: UserInteractor
 ) {
     install(Authentication) {
 
@@ -105,7 +109,30 @@ fun Application.module(
                     get("/all") {}
                     get("/cats") {}
                 }
-                get("/user") {}
+                get("/user") {
+                    val id = call.principal<JWTPrincipal>()
+                        ?.payload
+                        ?.getClaim(Claims.UserId)
+                        ?.asInt()
+                    if (id != null) {
+                        userInteractor.getUser(id)
+                            .fold({ err ->
+                                when (err) {
+                                    CommonError.UserNotFound ->
+                                        call.respond(HttpStatusCode.NotFound)
+                                    else ->
+                                        call.respond(HttpStatusCode.InternalServerError)
+                                }
+                            }, { model ->
+                                call.respond(
+                                    HttpStatusCode.OK,
+                                    model.toDto()
+                                )
+                            })
+                    } else {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
+                }
                 route("/team") {
                     get {}
                     get("/all") {}
