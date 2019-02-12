@@ -5,5 +5,6 @@ import net.rocketparty.entity.Id
 interface SolutionRepository {
 
     fun existsWith(taskId: Id, teamId: Id): Boolean
+    fun save(taskId: Id, teamId: Id)
 
 }

@@ -30,4 +30,14 @@ class PlatformInteractor(
         return categoryRepository.findAll()
     }
 
+    fun attempt(task: Id, flag: String): Either<DomainError, Boolean> {
+        return taskRepository.findById(task)
+            .wrap { DomainError.NotFound }
+            .mapRight { it.flag == flag }
+    }
+
+    fun solve(byTeam: Id, task: Id) {
+        solutionRepository.save(task, byTeam)
+    }
+
 }

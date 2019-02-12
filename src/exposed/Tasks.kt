@@ -9,5 +9,6 @@ object Tasks: Table() {
     val description = varchar("description", 1000)
     val reward = integer("reward")
     val category = integer("category_id").references(Categories.id)
+    val flag = varchar("flag", 32)
 
 }

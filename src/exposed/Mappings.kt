@@ -28,6 +28,7 @@ fun ResultRow.toTask(attachments: List<Attachment>): Task {
         this[Tasks.description],
         this[Tasks.reward],
         this.toCategory(),
+        this[Tasks.flag],
         attachments
     )
 }

@@ -200,7 +200,9 @@ fun Application.module(
 
                 }
 
-                post("/attempt") {}
+                post("/attempt") {
+
+                }
 
                 get("/subscribe") {}
             }

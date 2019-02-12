@@ -6,5 +6,6 @@ data class Task(
     val description: String,
     val reward: Int,
     val category: Category,
+    val flag: String,
     val attachments: List<Attachment>
 )
