@@ -201,7 +201,40 @@ fun Application.module(
                 }
 
                 post("/attempt") {
-
+                    val (taskId, flag) = call.receive<AttemptRequest>()
+                    val userId = acquirePrincipal<JWTPrincipal>()
+                        .payload
+                        .getClaim(Claims.UserId)
+                        .asInt()
+                    coroutineScope {
+                        restore<DomainError, Boolean> {
+                            val team = async {
+                                userInteractor.getUser(userId)
+                            }.await()
+                                .verify()
+                            async {
+                                platformInteractor.attempt(team.id, taskId, flag)
+                            }.await()
+                                .verify().also { correct ->
+                                    if (correct)
+                                        platformInteractor.solve(team.id, taskId)
+                                }
+                        }.fold(
+                            { err ->
+                                when (err) {
+                                    DomainError.AlreadyExists ->
+                                        call.respond(HttpStatusCode.UnprocessableEntity, "This team already solved this task")
+                                    DomainError.NotFound ->
+                                        call.respond(HttpStatusCode.NotFound)
+                                    else ->
+                                        call.respond(HttpStatusCode.InternalServerError)
+                                }
+                            },
+                            { result ->
+                                call.respond(AttemptResponse(result))
+                            }
+                        )
+                    }
                 }
 
                 get("/subscribe") {}

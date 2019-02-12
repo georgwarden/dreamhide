@@ -9,4 +9,6 @@ sealed class DomainError {
         val password: String
     ) : DomainError()
 
+    object AlreadyExists : DomainError()
+
 }

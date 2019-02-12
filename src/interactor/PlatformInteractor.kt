@@ -4,8 +4,7 @@ import net.rocketparty.entity.*
 import net.rocketparty.repository.CategoryRepository
 import net.rocketparty.repository.SolutionRepository
 import net.rocketparty.repository.TaskRepository
-import net.rocketparty.utils.Either
-import net.rocketparty.utils.wrap
+import net.rocketparty.utils.*
 
 class PlatformInteractor(
     private val taskRepository: TaskRepository,
@@ -30,10 +29,14 @@ class PlatformInteractor(
         return categoryRepository.findAll()
     }
 
-    fun attempt(task: Id, flag: String): Either<DomainError, Boolean> {
-        return taskRepository.findById(task)
-            .wrap { DomainError.NotFound }
-            .mapRight { it.flag == flag }
+    fun attempt(byTeam: Id, task: Id, flag: String): Either<DomainError, Boolean> {
+        return restore {
+            if (solutionRepository.existsWith(task, byTeam))
+                Left(DomainError.AlreadyExists).verify()
+            else
+                taskRepository.findById(task).wrap { DomainError.NotFound }
+                    .mapRight { it.flag == flag }.verify()
+        }
     }
 
     fun solve(byTeam: Id, task: Id) {
