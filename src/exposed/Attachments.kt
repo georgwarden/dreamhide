@@ -6,6 +6,6 @@ object Attachments : Table() {
 
     val id = integer("id").primaryKey()
     val content = varchar("content", 256)
-    val task = integer("task_id").references(Tasks.id)
+    val task = integer("task_id").references(Tasks.id).index()
 
 }

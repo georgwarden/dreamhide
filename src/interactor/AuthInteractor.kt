@@ -1,6 +1,6 @@
 package net.rocketparty.interactor
 
-import net.rocketparty.entity.CommonError
+import net.rocketparty.entity.DomainError
 import net.rocketparty.entity.Token
 import net.rocketparty.repository.UserRepository
 import net.rocketparty.utils.*
@@ -11,15 +11,15 @@ class AuthInteractor(
 
     private val hashingContext = Md5Context()
 
-    fun tryAuthorize(login: String, password: String): Either<CommonError, Token> {
+    fun tryAuthorize(login: String, password: String): Either<DomainError, Token> {
         return userRepository.findByName(login)
-            .wrap { CommonError.NotFound }
+            .wrap { DomainError.NotFound }
             .flatMap { cur ->
                 cur.fold({
                     Left(it)
                 }, { user ->
                     retrieve(hashingContext.run { password.hashed() == user.passwordHash },
-                        { CommonError.BadCredentials(login, password) },
+                        { DomainError.BadCredentials(login, password) },
                         { generateJwt(user.id) })
                 })
             }

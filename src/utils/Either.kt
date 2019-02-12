@@ -49,3 +49,32 @@ inline fun <L, R> retrieve(condition: Boolean, ifFalse: () -> L, ifTrue: () -> R
 inline fun <L, A> A?.wrap(ifNull: () -> L): Either<L, A> {
     return this?.let { Right(this) } ?: Left(ifNull())
 }
+
+class EitherRestorationContext<L : Any> {
+
+    lateinit var caughtLeft: L
+
+    fun <W> Either<L, W>.verify(): W {
+        when (this) {
+            is Left -> {
+                caughtLeft = value
+                throw UnrestoredException()
+            }
+            is Right -> {
+                return value
+            }
+        }
+    }
+
+    class UnrestoredException : Exception()
+
+}
+
+inline fun <L : Any, R> restore(block: EitherRestorationContext<L>.() -> R): Either<L, R> {
+    val context = EitherRestorationContext<L>()
+    return try {
+        Right(context.block())
+    } catch (e: EitherRestorationContext.UnrestoredException) {
+        Left(context.caughtLeft)
+    }
+}

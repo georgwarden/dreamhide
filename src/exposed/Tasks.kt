@@ -8,6 +8,6 @@ object Tasks: Table() {
     val name = varchar("name", 24)
     val description = varchar("description", 1000)
     val reward = integer("reward")
-    val category = integer("category_id").references(Category.id)
+    val category = integer("category_id").references(Categories.id)
 
 }

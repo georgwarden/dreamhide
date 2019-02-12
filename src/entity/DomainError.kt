@@ -1,12 +1,12 @@
 package net.rocketparty.entity
 
-sealed class CommonError {
+sealed class DomainError {
 
-    object NotFound : CommonError()
+    object NotFound : DomainError()
 
     data class BadCredentials(
         val login: String,
         val password: String
-    ) : CommonError()
+    ) : DomainError()
 
 }

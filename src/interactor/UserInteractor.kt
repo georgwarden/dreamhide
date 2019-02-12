@@ -1,6 +1,6 @@
 package net.rocketparty.interactor
 
-import net.rocketparty.entity.CommonError
+import net.rocketparty.entity.DomainError
 import net.rocketparty.entity.User
 import net.rocketparty.repository.UserRepository
 import net.rocketparty.utils.Either
@@ -10,9 +10,9 @@ class UserInteractor(
     private val repository: UserRepository
 ) {
 
-    fun getUser(id: Int): Either<CommonError, User> {
+    fun getUser(id: Int): Either<DomainError, User> {
         return repository.findById(id)
-            .wrap { CommonError.NotFound }
+            .wrap { DomainError.NotFound }
     }
 
 }

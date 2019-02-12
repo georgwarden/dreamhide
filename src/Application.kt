@@ -16,17 +16,20 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import net.rocketparty.di.DomainModule
 import net.rocketparty.di.RepositoryModule
-import net.rocketparty.dto.AuthorizationRequest
-import net.rocketparty.dto.AuthorizationResponse
-import net.rocketparty.dto.toDto
-import net.rocketparty.entity.CommonError
+import net.rocketparty.dto.*
+import net.rocketparty.entity.DomainError
+import net.rocketparty.entity.Task
 import net.rocketparty.interactor.AuthInteractor
+import net.rocketparty.interactor.PlatformInteractor
 import net.rocketparty.interactor.TeamInteractor
 import net.rocketparty.interactor.UserInteractor
 import net.rocketparty.utils.Claims
 import net.rocketparty.utils.acquirePrincipal
+import net.rocketparty.utils.restore
 import org.koin.standalone.StandAloneContext.startKoin
 import java.time.Duration
 
@@ -40,12 +43,14 @@ fun main(args: Array<String>) {
     val authInteractor: AuthInteractor = koin.koinContext.get()
     val userInteractor: UserInteractor = koin.koinContext.get()
     val teamInteractor: TeamInteractor = koin.koinContext.get()
+    val platformInteractor: PlatformInteractor = koin.koinContext.get()
     embeddedServer(Netty) {
         module(
             true,
             authInteractor,
             userInteractor,
-            teamInteractor
+            teamInteractor,
+            platformInteractor
         )
     }.start(true)
     //io.ktor.server.netty.EngineMain.main(args)
@@ -56,7 +61,8 @@ fun Application.module(
     testing: Boolean = false,
     authInteractor: AuthInteractor,
     userInteractor: UserInteractor,
-    teamInteractor: TeamInteractor
+    teamInteractor: TeamInteractor,
+    platformInteractor: PlatformInteractor
 ) {
     install(Authentication) {
 
@@ -96,9 +102,9 @@ fun Application.module(
             authInteractor.tryAuthorize(login, password)
                 .fold({ err ->
                     when (err) {
-                        is CommonError.BadCredentials ->
+                        is DomainError.BadCredentials ->
                             call.respond(HttpStatusCode.BadRequest)
-                        is CommonError.NotFound ->
+                        is DomainError.NotFound ->
                             call.respond(HttpStatusCode.NotFound)
                         else ->
                             call.respond(HttpStatusCode.InternalServerError)
@@ -117,9 +123,33 @@ fun Application.module(
         authenticate("token-user") {
             route("/platform") {
                 route("/task") {
-                    get {}
-                    get("/all") {}
-                    get("/cats") {}
+                    get {
+                        val id = acquirePrincipal<JWTPrincipal>()
+                            .payload
+                            .getClaim(Claims.UserId)
+                            .asInt()
+                        val (taskId) = call.receive<GetTaskRequest>()
+                        coroutineScope {
+                            restore<DomainError, TaskDto> {
+                                val taskAsync = async {
+                                    platformInteractor.getTask(taskId).verify()
+                                }
+                                val solvedAsync = async {
+                                    val user = userInteractor.getUser(id).verify()
+                                    platformInteractor.isSolved(taskId, user)
+                                }
+                                val task = taskAsync.await()
+                                val solved = solvedAsync.await()
+                                task.toDto(solved)
+                            }
+                        }
+                    }
+                    get("/all") {
+                        platformInteractor.getTasks()
+                    }
+                    get("/cats") {
+                        platformInteractor.getCategories()
+                    }
                 }
 
                 get("/user") {
@@ -130,7 +160,7 @@ fun Application.module(
                     userInteractor.getUser(id)
                         .fold({ err ->
                             when (err) {
-                                CommonError.NotFound ->
+                                DomainError.NotFound ->
                                     call.respond(HttpStatusCode.NotFound)
                                 else ->
                                     call.respond(HttpStatusCode.InternalServerError)
@@ -154,7 +184,7 @@ fun Application.module(
                             .mapRight { user -> user.team }
                             .fold({ err ->
                                 when (err) {
-                                    CommonError.NotFound ->
+                                    DomainError.NotFound ->
                                         call.respond(HttpStatusCode.NotFound)
                                     else ->
                                         call.respond(HttpStatusCode.InternalServerError)

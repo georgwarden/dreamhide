@@ -1,6 +1,6 @@
 package net.rocketparty.interactor
 
-import net.rocketparty.entity.CommonError
+import net.rocketparty.entity.DomainError
 import net.rocketparty.entity.Team
 import net.rocketparty.repository.TeamRepository
 import net.rocketparty.utils.Either
@@ -10,9 +10,9 @@ class TeamInteractor(
     private val teamRepository: TeamRepository
 ) {
 
-    fun getTeam(id: Int): Either<CommonError, Team> {
+    fun getTeam(id: Int): Either<DomainError, Team> {
         return teamRepository.findById(id)
-            .wrap { CommonError.NotFound }
+            .wrap { DomainError.NotFound }
     }
 
     fun getAllTeams(): List<Team> {
