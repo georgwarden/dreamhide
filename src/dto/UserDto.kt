@@ -6,7 +6,5 @@ data class UserDto(
     @SerializedName("id")
     val id: Int,
     @SerializedName("name")
-    val name: String,
-    @SerializedName("team")
-    val team: TeamDto
+    val name: String
 )

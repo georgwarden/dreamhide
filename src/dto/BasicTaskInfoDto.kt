@@ -2,19 +2,15 @@ package net.rocketparty.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class TaskDto(
+data class BasicTaskInfoDto(
     @SerializedName("id")
     val id: Int,
-    @SerializedName("title")
+    @SerializedName("name")
     val name: String,
-    @SerializedName("description")
-    val description: String,
-    @SerializedName("category")
-    val category: CategoryDto,
     @SerializedName("reward")
     val reward: Int,
-    @SerializedName("attachments")
-    val attachments: List<String>,
+    @SerializedName("category")
+    val category: CategoryDto,
     @SerializedName("solved")
     val solved: Boolean
 )

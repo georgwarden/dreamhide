@@ -103,7 +103,7 @@ class MainController(
                                     .asInt()
                                 val (taskId) = call.receive<GetTaskRequest>()
                                 coroutineScope {
-                                    restore<DomainError, TaskDto> {
+                                    restore<DomainError, FullTaskInfoDto> {
                                         val taskAsync = async {
                                             platformInteractor.getTask(taskId).verify()
                                         }
@@ -113,15 +113,17 @@ class MainController(
                                         }
                                         val task = taskAsync.await()
                                         val solved = solvedAsync.await()
-                                        task.toDto(solved)
-                                    }
+                                        task.toInfo(solved) + task.toDescription()
+                                    } // TODO: fold
                                 }
                             }
                             get("/all") {
                                 platformInteractor.getTasks()
+                                // TODO
                             }
                             get("/cats") {
                                 platformInteractor.getCategories()
+                                // TODO
                             }
                         }
 
@@ -169,6 +171,7 @@ class MainController(
 
                             get("/all") {
                                 teamInteractor.getAllTeams()
+                                // TODO
                             }
 
                         }

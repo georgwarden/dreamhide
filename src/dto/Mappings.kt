@@ -6,12 +6,21 @@ import net.rocketparty.entity.Team
 import net.rocketparty.entity.User
 
 fun User.toDto(): UserDto {
-    val model = this
     return UserDto(
-        model.id,
-        model.name,
-        model.team.toDto()
+        this.id,
+        this.name
     )
+}
+
+operator fun UserDto.plus(team: TeamDto): UserTeamDto {
+    return UserTeamDto(
+        this,
+        team
+    )
+}
+
+operator fun TeamDto.plus(user: UserDto): UserTeamDto {
+    return user + this
 }
 
 fun Team.toDto(): TeamDto {
@@ -30,14 +39,30 @@ fun Category.toDto(): CategoryDto {
     )
 }
 
-fun Task.toDto(solved: Boolean = false): TaskDto {
-    return TaskDto(
+fun Task.toInfo(solved: Boolean = false): BasicTaskInfoDto {
+    return BasicTaskInfoDto(
         this.id,
         this.name,
-        this.description,
-        this.category.toDto(),
         this.reward,
-        this.attachments.map { it.content },
+        this.category.toDto(),
         solved
     )
+}
+
+fun Task.toDescription(): TaskDescriptionDto {
+    return TaskDescriptionDto(
+        this.description,
+        this.attachments.map { it.content }
+    )
+}
+
+operator fun BasicTaskInfoDto.plus(desc: TaskDescriptionDto): FullTaskInfoDto {
+    return FullTaskInfoDto(
+        this,
+        desc
+    )
+}
+
+operator fun TaskDescriptionDto.plus(info: BasicTaskInfoDto): FullTaskInfoDto {
+    return info + this
 }
