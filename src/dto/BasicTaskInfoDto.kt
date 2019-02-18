@@ -10,7 +10,5 @@ data class BasicTaskInfoDto(
     @SerializedName("reward")
     val reward: Int,
     @SerializedName("category")
-    val category: CategoryDto,
-    @SerializedName("solved")
-    val solved: Boolean
+    val category: CategoryDto
 )

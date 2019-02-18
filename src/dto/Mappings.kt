@@ -39,13 +39,12 @@ fun Category.toDto(): CategoryDto {
     )
 }
 
-fun Task.toInfo(solved: Boolean = false): BasicTaskInfoDto {
+fun Task.toInfo(): BasicTaskInfoDto {
     return BasicTaskInfoDto(
         this.id,
         this.name,
         this.reward,
-        this.category.toDto(),
-        solved
+        this.category.toDto()
     )
 }
 
@@ -54,15 +53,4 @@ fun Task.toDescription(): TaskDescriptionDto {
         this.description,
         this.attachments.map { it.content }
     )
-}
-
-operator fun BasicTaskInfoDto.plus(desc: TaskDescriptionDto): FullTaskInfoDto {
-    return FullTaskInfoDto(
-        this,
-        desc
-    )
-}
-
-operator fun TaskDescriptionDto.plus(info: BasicTaskInfoDto): FullTaskInfoDto {
-    return info + this
 }

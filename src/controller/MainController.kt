@@ -94,8 +94,11 @@ class MainController(
                 }
 
                 authenticate("token-user") {
+
                     route("/platform") {
+
                         route("/task") {
+
                             get {
                                 val id = acquirePrincipal<JWTPrincipal>()
                                     .payload
@@ -113,13 +116,33 @@ class MainController(
                                         }
                                         val task = taskAsync.await()
                                         val solved = solvedAsync.await()
-                                        task.toInfo(solved) + task.toDescription()
-                                    } // TODO: fold
-                                }
+                                        FullTaskInfoDto(
+                                            task.toInfo(),
+                                            task.toDescription(),
+                                            solved
+                                        )
+                                    }
+                                }.fold(
+                                    { err ->
+                                        call.respond(
+                                            when (err) {
+                                                is DomainError.NotFound ->
+                                                    HttpStatusCode.NotFound
+                                                else ->
+                                                    HttpStatusCode.InternalServerError
+                                            }
+                                        )
+                                    },
+                                    { task ->
+                                        call.respond(task)
+                                    }
+                                )
                             }
                             get("/all") {
                                 platformInteractor.getTasks()
-                                // TODO
+                                    .map { task -> task.toInfo() }
+                                    .let { tasks -> GetTasksResponse(tasks) }
+                                    .also { response -> call.respond(response) }
                             }
                             get("/cats") {
                                 platformInteractor.getCategories()
