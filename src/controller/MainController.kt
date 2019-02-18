@@ -18,6 +18,7 @@ import io.ktor.server.netty.Netty
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
+import net.rocketparty.dto.response.CategoriesResponse
 import net.rocketparty.entity.DomainError
 import net.rocketparty.interactor.AuthInteractor
 import net.rocketparty.interactor.PlatformInteractor
@@ -141,12 +142,14 @@ class MainController(
                             get("/all") {
                                 platformInteractor.getTasks()
                                     .map { task -> task.toInfo() }
-                                    .let { tasks -> GetTasksResponse(tasks) }
+                                    .let(::GetTasksResponse)
                                     .also { response -> call.respond(response) }
                             }
                             get("/cats") {
                                 platformInteractor.getCategories()
-                                // TODO
+                                    .map { cat -> cat.toDto() }
+                                    .let(::CategoriesResponse)
+                                    .also { response -> call.respond(response) }
                             }
                         }
 
