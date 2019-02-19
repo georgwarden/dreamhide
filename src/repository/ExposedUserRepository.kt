@@ -10,31 +10,21 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class ExposedUserRepository : UserRepository {
 
     override fun findByName(name: String): User? {
-        val result = transaction {
+        return transaction {
             Users.innerJoin(Teams)
-                .slice(
-                    Users.id, Users.name, Users.passwordHash,
-                    Teams.id, Teams.name, Teams.avatar
-                )
                 .select {
                     Users.name eq name
-                }.firstOrNull()
+                }.firstOrNull()?.toUser()
         }
-        return result?.toUser()
     }
 
     override fun findById(id: Int): User? {
-        val result = transaction {
+        return transaction {
             Users.innerJoin(Teams)
-                .slice(
-                    Users.id, Users.name, Users.passwordHash,
-                    Teams.id, Teams.name, Teams.avatar, Teams.score
-                )
                 .select {
                     Users.id eq id
-                }.firstOrNull()
+                }.firstOrNull()?.toUser()
         }
-        return result?.toUser()
     }
 
 }

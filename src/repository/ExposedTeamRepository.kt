@@ -10,19 +10,18 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class ExposedTeamRepository : TeamRepository {
 
     override fun findById(id: Int): Team? {
-        val result = transaction {
+        return transaction {
             Teams.select {
                 Teams.id eq id
-            }.firstOrNull()
+            }.firstOrNull()?.toTeam()
         }
-        return result?.toTeam()
     }
 
     override fun getAll(): List<Team> {
-        val result = transaction {
+        return transaction {
             Teams.selectAll()
+                .map { row -> row.toTeam() }
         }
-        return result.map { row -> row.toTeam() }
     }
 
 }

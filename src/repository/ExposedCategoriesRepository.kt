@@ -11,7 +11,8 @@ class ExposedCategoriesRepository : CategoryRepository {
     override fun findAll(): List<Category> {
         return transaction {
             Categories.selectAll()
-        }.map { row -> row.toCategory() }
+                .map { row -> row.toCategory() }
+        }
     }
 
 }

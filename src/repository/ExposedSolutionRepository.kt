@@ -14,15 +14,15 @@ class ExposedSolutionRepository : SolutionRepository {
             Solutions.select {
                 (Solutions.task eq taskId) and
                         (Solutions.team eq teamId)
-            }
-        }.any()
+            }.any()
+        }
     }
 
     override fun save(taskId: Id, teamId: Id) {
         transaction {
             Solutions.insert {
-                it[Solutions.task] = taskId
-                it[Solutions.team] = teamId
+                it[task] = taskId
+                it[team] = teamId
             }
         }
     }

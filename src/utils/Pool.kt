@@ -9,7 +9,7 @@ class Pool<T>(
 
     private val internalStorage = LinkedList<T>()
 
-    fun obtain() = internalStorage.pop() ?: supplier()
+    fun obtain() = internalStorage.poll() ?: supplier()
 
     fun free(instance: T) {
         reset(instance)
