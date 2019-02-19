@@ -1,5 +1,6 @@
 package net.rocketparty.controller
 
+import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
@@ -15,6 +16,7 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
@@ -30,6 +32,7 @@ import net.rocketparty.utils.acquirePrincipal
 import net.rocketparty.utils.restore
 import java.time.Duration
 
+@KtorExperimentalAPI
 class MainController(
     private val authInteractor: AuthInteractor,
     private val userInteractor: UserInteractor,
@@ -40,8 +43,22 @@ class MainController(
     fun start(testing: Boolean) {
         embeddedServer(Netty, port = 8080) {
             install(Authentication) {
-
                 jwt("token-user") {
+
+                    val jwtIssuer = environment.config.property("jwt.domain").getString()
+                    val jwtAudience = environment.config.property("jwt.audience").getString()
+                    val jwtRealm = environment.config.property("jwt.realm").getString()
+                    val jwkProvider = JwkProviderBuilder(jwtIssuer).build()
+
+                    realm = jwtRealm
+                    verifier(jwkProvider)
+
+                    validate { credentials ->
+                        if (credentials.payload.audience.contains(jwtAudience))
+                            JWTPrincipal(credentials.payload)
+                        else
+                            null
+                    }
                 }
 
                 jwt("token-admin") {
@@ -202,6 +219,7 @@ class MainController(
                                     .let(::GetTeamsResponse)
                                     .also { response -> call.respond(response) }
                             }
+
 
                         }
 
