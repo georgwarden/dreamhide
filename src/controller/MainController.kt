@@ -19,6 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
 import net.rocketparty.dto.response.CategoriesResponse
+import net.rocketparty.dto.response.GetTeamsResponse
 import net.rocketparty.entity.DomainError
 import net.rocketparty.interactor.AuthInteractor
 import net.rocketparty.interactor.PlatformInteractor
@@ -197,7 +198,9 @@ class MainController(
 
                             get("/all") {
                                 teamInteractor.getAllTeams()
-                                // TODO
+                                    .map { team -> team.toDto() }
+                                    .let(::GetTeamsResponse)
+                                    .also { response -> call.respond(response) }
                             }
 
                         }
