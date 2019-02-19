@@ -20,6 +20,7 @@ import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
+import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.AuthorizationResponse
 import net.rocketparty.dto.response.CategoriesResponse
 import net.rocketparty.dto.response.GetTeamsResponse
@@ -86,7 +87,7 @@ class MainController(
 
             routing {
 
-                get("/login") {
+                post("/login") {
                     val (login, password) = call.receive<AuthorizationRequest>()
                     authInteractor.tryAuthorize(login, password)
                         .fold({ err ->
