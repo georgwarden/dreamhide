@@ -9,4 +9,5 @@ val RepositoryModule = module {
     single { ExposedTaskRepository() as TaskRepository }
     single { ExposedSolutionRepository() as SolutionRepository }
     single { ExposedCategoriesRepository() as CategoryRepository }
+    single { TestJwtRepository() as JwtRepository }
 }

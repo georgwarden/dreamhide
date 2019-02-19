@@ -4,5 +4,5 @@ import net.rocketparty.controller.MainController
 import org.koin.dsl.module.module
 
 val ControllerModule = module {
-    single { MainController(get(), get(), get(), get()) }
+    single { MainController(get(), get(), get(), get(), get()) }
 }

@@ -20,13 +20,11 @@ import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
+import net.rocketparty.dto.response.AuthorizationResponse
 import net.rocketparty.dto.response.CategoriesResponse
 import net.rocketparty.dto.response.GetTeamsResponse
 import net.rocketparty.entity.DomainError
-import net.rocketparty.interactor.AuthInteractor
-import net.rocketparty.interactor.PlatformInteractor
-import net.rocketparty.interactor.TeamInteractor
-import net.rocketparty.interactor.UserInteractor
+import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
 import net.rocketparty.utils.acquirePrincipal
 import net.rocketparty.utils.restore
@@ -37,7 +35,8 @@ class MainController(
     private val authInteractor: AuthInteractor,
     private val userInteractor: UserInteractor,
     private val teamInteractor: TeamInteractor,
-    private val platformInteractor: PlatformInteractor
+    private val platformInteractor: PlatformInteractor,
+    private val jwtInteractor: JwtInteractor
 ) {
 
     fun start(testing: Boolean) {
@@ -45,19 +44,17 @@ class MainController(
             install(Authentication) {
                 jwt("token-user") {
 
-                    val jwtIssuer = environment.config.property("jwt.domain").getString()
-                    val jwtAudience = environment.config.property("jwt.audience").getString()
-                    val jwtRealm = environment.config.property("jwt.realm").getString()
+                    val jwtIssuer = jwtInteractor.getIssuer()
+                    val jwtRealm = jwtInteractor.getRealm()
                     val jwkProvider = JwkProviderBuilder(jwtIssuer).build()
 
                     realm = jwtRealm
                     verifier(jwkProvider)
 
                     validate { credentials ->
-                        if (credentials.payload.audience.contains(jwtAudience))
-                            JWTPrincipal(credentials.payload)
-                        else
-                            null
+                        credentials.payload
+                            .takeIf { jwtInteractor.validate(it) }
+                            ?.let { JWTPrincipal(it) }
                     }
                 }
 
@@ -101,11 +98,9 @@ class MainController(
                                 else ->
                                     call.respond(HttpStatusCode.InternalServerError)
                             }
-                        }, { token ->
-                            call.respond(
-                                HttpStatusCode.OK,
-                                AuthorizationResponse(token)
-                            )
+                        }, { user ->
+                            val token = jwtInteractor.generateToken(user.id)
+                            call.respond(AuthorizationResponse(token))
                         })
                 }
 
@@ -277,7 +272,7 @@ class MainController(
                     }
                 }
             }
-        }
+        }.start(true)
     }
 
 }
