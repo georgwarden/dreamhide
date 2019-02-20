@@ -1,4 +1,4 @@
-package net.rocketparty.dto
+package net.rocketparty.dto.model
 
 import com.google.gson.annotations.SerializedName
 

@@ -1,5 +1,6 @@
 package net.rocketparty.dto
 
+import net.rocketparty.dto.model.*
 import net.rocketparty.entity.Category
 import net.rocketparty.entity.Task
 import net.rocketparty.entity.Team

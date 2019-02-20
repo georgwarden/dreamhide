@@ -1,7 +1,7 @@
 package net.rocketparty.dto.response
 
 import com.google.gson.annotations.SerializedName
-import net.rocketparty.dto.TeamDto
+import net.rocketparty.dto.model.TeamDto
 
 data class GetTeamsResponse(
     @SerializedName("teams")

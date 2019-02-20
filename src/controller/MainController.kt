@@ -20,10 +20,9 @@ import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.*
-import net.rocketparty.dto.request.AuthorizationRequest
-import net.rocketparty.dto.response.AuthorizationResponse
-import net.rocketparty.dto.response.CategoriesResponse
-import net.rocketparty.dto.response.GetTeamsResponse
+import net.rocketparty.dto.model.*
+import net.rocketparty.dto.request.*
+import net.rocketparty.dto.response.*
 import net.rocketparty.entity.DomainError
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
