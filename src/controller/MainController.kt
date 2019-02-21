@@ -1,6 +1,7 @@
 package net.rocketparty.controller
 
-import com.auth0.jwk.JwkProviderBuilder
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
@@ -19,10 +20,14 @@ import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import net.rocketparty.dto.*
-import net.rocketparty.dto.model.*
-import net.rocketparty.dto.request.*
+import net.rocketparty.dto.model.FullTaskInfoDto
+import net.rocketparty.dto.request.AttemptRequest
+import net.rocketparty.dto.request.AuthorizationRequest
+import net.rocketparty.dto.request.GetTaskRequest
 import net.rocketparty.dto.response.*
+import net.rocketparty.dto.toDescription
+import net.rocketparty.dto.toDto
+import net.rocketparty.dto.toInfo
 import net.rocketparty.entity.DomainError
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
@@ -46,10 +51,15 @@ class MainController(
 
                     val jwtIssuer = jwtInteractor.getIssuer()
                     val jwtRealm = jwtInteractor.getRealm()
-                    val jwkProvider = JwkProviderBuilder(jwtIssuer).build()
+                    val jwtAudience = jwtInteractor.getAudience()
+                    val jwtSecret = jwtInteractor.getSecret()
+                    val jwtVerifier = JWT.require(Algorithm.HMAC256(jwtSecret))
+                        .withAudience(jwtAudience)
+                        .withIssuer(jwtIssuer)
+                        .build()
 
+                    verifier(jwtVerifier)
                     realm = jwtRealm
-                    verifier(jwkProvider)
 
                     validate { credentials ->
                         credentials.payload
