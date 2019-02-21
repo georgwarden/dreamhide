@@ -18,12 +18,12 @@ import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
+import io.ktor.util.getOrFail
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.model.FullTaskInfoDto
 import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
-import net.rocketparty.dto.request.GetTaskRequest
 import net.rocketparty.dto.response.*
 import net.rocketparty.dto.toDescription
 import net.rocketparty.dto.toDto
@@ -128,7 +128,7 @@ class MainController(
                                     .payload
                                     .getClaim(Claims.UserId)
                                     .asInt()
-                                val (taskId) = call.receive<GetTaskRequest>()
+                                val taskId = call.request.queryParameters.getOrFail<Int>("id")
                                 coroutineScope {
                                     restore<DomainError, FullTaskInfoDto> {
                                         val taskAsync = async {
