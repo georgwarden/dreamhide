@@ -22,11 +22,14 @@ import io.ktor.util.getOrFail
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.rocketparty.dto.model.FullTaskInfoDto
+import net.rocketparty.dto.model.TaskCreationDto
+import net.rocketparty.dto.model.TaskModelDto
 import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.*
 import net.rocketparty.dto.toDescription
 import net.rocketparty.dto.toDto
+import net.rocketparty.dto.toEntity
 import net.rocketparty.dto.toInfo
 import net.rocketparty.entity.DomainError
 import net.rocketparty.interactor.*
@@ -273,11 +276,35 @@ class MainController(
                 }
 
                 authenticate("token-admin") {
+
                     route("/admin") {
+
                         route("/task") {
-                            post {}
-                            patch {}
+
+                            post {
+                                val model = call.receive<TaskCreationDto>()
+                                platformInteractor.createTask(model.toEntity())
+                                    .fold(
+                                        {
+                                            call.respond(HttpStatusCode.InternalServerError)
+                                        },
+                                        { task ->
+                                            call.respond(
+                                                TaskModelDto(
+                                                    task.toInfo(),
+                                                    task.toDescription()
+                                                )
+                                            )
+                                        }
+                                    )
+                            }
+
+                            patch {
+
+                            }
+
                             delete {}
+
                         }
                     }
                 }
