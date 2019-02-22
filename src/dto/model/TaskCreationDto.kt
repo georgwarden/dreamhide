@@ -11,6 +11,8 @@ data class TaskCreationDto(
     val reward: Int,
     @SerializedName("category")
     val categoryId: Int,
+    @SerializedName("flag")
+    val flag: String,
     @SerializedName("attachments")
     val attachments: List<String>
 )

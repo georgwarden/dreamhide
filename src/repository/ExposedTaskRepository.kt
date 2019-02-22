@@ -1,7 +1,10 @@
 package net.rocketparty.repository
 
+import net.rocketparty.entity.Id
 import net.rocketparty.entity.Task
+import net.rocketparty.entity.TaskCreation
 import net.rocketparty.exposed.*
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -32,6 +35,18 @@ class ExposedTaskRepository : TaskRepository {
                             ?.map { it.toAttachment() }
                             ?: emptyList())
                 }
+        }
+    }
+
+    override fun create(task: TaskCreation): Id? {
+        return transaction {
+            Tasks.insert {
+                it[name] = task.title
+                it[description] = task.description
+                it[reward] = task.reward
+                it[category] = task.categoryId
+                it[flag] = task.flag
+            } get Tasks.id
         }
     }
 

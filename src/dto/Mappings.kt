@@ -1,10 +1,7 @@
 package net.rocketparty.dto
 
 import net.rocketparty.dto.model.*
-import net.rocketparty.entity.Category
-import net.rocketparty.entity.Task
-import net.rocketparty.entity.Team
-import net.rocketparty.entity.User
+import net.rocketparty.entity.*
 
 fun User.toDto(): UserDto {
     return UserDto(
@@ -53,5 +50,16 @@ fun Task.toDescription(): TaskDescriptionDto {
     return TaskDescriptionDto(
         this.description,
         this.attachments.map { it.content }
+    )
+}
+
+fun TaskCreationDto.toEntity(): TaskCreation {
+    return TaskCreation(
+        this.title,
+        this.description,
+        this.reward,
+        this.categoryId,
+        this.flag,
+        this.attachments
     )
 }

@@ -43,4 +43,16 @@ class PlatformInteractor(
         solutionRepository.save(task, byTeam)
     }
 
+    fun createTask(model: TaskCreation): Either<DomainError, Task> {
+        return taskRepository.create(model)
+            .wrap { DomainError.NotCreated }
+            .mapRight { id -> taskRepository.findById(id) }
+            .flatMap {
+                it.fold(
+                    { err -> Left(err) },
+                    { task -> task.wrap { DomainError.NotCreated } }
+                )
+            }
+    }
+
 }

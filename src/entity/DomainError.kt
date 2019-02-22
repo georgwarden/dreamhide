@@ -11,4 +11,6 @@ sealed class DomainError {
 
     object AlreadyExists : DomainError()
 
+    object NotCreated : DomainError()
+
 }
