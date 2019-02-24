@@ -63,3 +63,10 @@ fun TaskCreationDto.toEntity(): TaskCreation {
         this.attachments
     )
 }
+
+fun Task.toEssentials(solved: Boolean): TaskEssentialsDto {
+    return TaskEssentialsDto(
+        this.toInfo(),
+        solved
+    )
+}

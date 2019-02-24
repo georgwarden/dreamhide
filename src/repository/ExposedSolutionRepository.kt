@@ -18,6 +18,14 @@ class ExposedSolutionRepository : SolutionRepository {
         }
     }
 
+    override fun findAllTasksSolvedByTeam(teamId: Id): List<Id> {
+        return transaction {
+            Solutions.select {
+                Solutions.team eq teamId
+            }.map { it[Solutions.task] }
+        }
+    }
+
     override fun save(taskId: Id, teamId: Id) {
         transaction {
             Solutions.insert {

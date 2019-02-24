@@ -19,19 +19,19 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import io.ktor.util.getOrFail
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import net.rocketparty.dto.*
 import net.rocketparty.dto.model.FullTaskInfoDto
 import net.rocketparty.dto.model.TaskCreationDto
 import net.rocketparty.dto.model.TaskModelDto
 import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.*
-import net.rocketparty.dto.toDescription
-import net.rocketparty.dto.toDto
-import net.rocketparty.dto.toEntity
-import net.rocketparty.dto.toInfo
 import net.rocketparty.entity.DomainError
+import net.rocketparty.entity.Task
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
 import net.rocketparty.utils.acquirePrincipal
@@ -166,11 +166,47 @@ class MainController(
                                 )
                             }
                             get("/all") {
-                                platformInteractor.getTasks()
-                                    .map { task -> task.toInfo() }
-                                    .let(::GetTasksResponse)
-                                    .also { response -> call.respond(response) }
+                                val id = acquirePrincipal<JWTPrincipal>()
+                                    .payload
+                                    .getClaim(Claims.UserId)
+                                    .asInt()
+                                val (tasks, maybeSolutions) = withContext(Dispatchers.IO) {
+                                    coroutineScope {
+                                        val tasks = async {
+                                            platformInteractor.getTasks()
+                                        }
+                                        val solutions = async {
+                                            userInteractor.getUser(id)
+                                                .mapRight { user -> user.team.id }
+                                                .mapRight { team ->
+                                                    platformInteractor.getSolutionsOf(team)
+                                                }
+                                        }
+                                        tasks.await() to solutions.await()
+                                    }
+                                }
+                                maybeSolutions.mapRight { solutions -> solutions.toHashSet() }
+                                    .mapRight { solutions ->
+                                        GetTasksResponse(tasks.map { task ->
+                                            task.toEssentials(task.id in solutions)
+                                        })
+                                    }.fold(
+                                        { err ->
+                                            call.respond(
+                                                when (err) {
+                                                    is DomainError.NotFound ->
+                                                        HttpStatusCode.NotFound
+                                                    else ->
+                                                        HttpStatusCode.InternalServerError
+                                                }
+                                            )
+                                        },
+                                        { response ->
+                                            call.respond(response)
+                                        }
+                                    )
                             }
+
                             get("/cats") {
                                 platformInteractor.getCategories()
                                     .map { cat -> cat.toDto() }

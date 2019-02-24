@@ -25,6 +25,10 @@ class PlatformInteractor(
         return taskRepository.findAll()
     }
 
+    fun getSolutionsOf(teamId: Id): List<Id> {
+        return solutionRepository.findAllTasksSolvedByTeam(teamId)
+    }
+
     fun getCategories(): List<Category> {
         return categoryRepository.findAll()
     }

@@ -78,3 +78,10 @@ inline fun <L : Any, R> restore(block: EitherRestorationContext<L>.() -> R): Eit
         Left(context.caughtLeft)
     }
 }
+
+fun <L, R, NR> Either<L, R>.flatMapRight(map: (R) -> Either<L, NR>): Either<L, NR> {
+    return when(this) {
+        is Left -> this
+        is Right -> map(value)
+    }
+}

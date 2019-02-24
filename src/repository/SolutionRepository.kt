@@ -6,5 +6,6 @@ interface SolutionRepository {
 
     fun existsWith(taskId: Id, teamId: Id): Boolean
     fun save(taskId: Id, teamId: Id)
+    fun findAllTasksSolvedByTeam(teamId: Id): List<Id>
 
 }
