@@ -58,4 +58,8 @@ class PlatformInteractor(
         return taskRepository.edit(delta)
     }
 
+    fun deleteTask(id: Id) {
+        taskRepository.delete(id)
+    }
+
 }

@@ -96,7 +96,12 @@ class ExposedTaskRepository : TaskRepository {
         }
     }
 
-    private fun pickTask(taskId: Id) {
-
+    override fun delete(id: Id) {
+        transaction {
+            Tasks.deleteWhere {
+                Tasks.id eq id
+            }
+        }
     }
+
 }

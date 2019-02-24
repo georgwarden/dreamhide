@@ -379,7 +379,25 @@ class MainController(
                                 )
                             }
 
-                            delete {}
+                            delete {
+                                // TODO
+                                // write ticket to Kotlin team about better dispatching.
+                                // if there is 2 functions with following contracts:
+                                // ```
+                                //  fun f1(): Type1 (1)
+                                //  fun <T> f1(): T (2)
+                                // ```
+                                // then
+                                // ```
+                                //  val result: Type2 = f1()
+                                // ```
+                                // will dispatch to (1), while it could safely (?) dispatch to (2).
+                                val taskId = call.request.queryParameters.getOrFail<Int>("id")
+                                withContext(Dispatchers.IO) {
+                                    platformInteractor.deleteTask(taskId)
+                                }
+                                call.respond(HttpStatusCode.OK)
+                            }
 
                         }
                     }
