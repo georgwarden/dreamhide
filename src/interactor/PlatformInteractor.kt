@@ -17,8 +17,8 @@ class PlatformInteractor(
             .wrap { DomainError.NotFound }
     }
 
-    fun isSolved(task: Id, by: User): Boolean {
-        return solutionRepository.existsWith(task, by.team.id)
+    fun isSolved(task: Id, by: Team): Boolean {
+        return solutionRepository.existsWith(task, by.id)
     }
 
     fun getTasks(): List<Task> {

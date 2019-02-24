@@ -162,7 +162,9 @@ class MainController(
                                         }
                                         val solvedAsync = async {
                                             val user = userInteractor.getUser(id).verify()
-                                            platformInteractor.isSolved(taskId, user)
+                                            user.team?.let { team ->
+                                                platformInteractor.isSolved(taskId, team)
+                                            } ?: false
                                         }
                                         val task = taskAsync.await()
                                         val solved = solvedAsync.await()
@@ -200,9 +202,10 @@ class MainController(
                                         }
                                         val solutions = async {
                                             userInteractor.getUser(id)
-                                                .mapRight { user -> user.team.id }
-                                                .mapRight { team ->
-                                                    platformInteractor.getSolutionsOf(team)
+                                                .mapRight { user ->
+                                                    user.team?.run {
+                                                        platformInteractor.getSolutionsOf(id)
+                                                    } ?: emptyList()
                                                 }
                                         }
                                         tasks.await() to solutions.await()
@@ -276,7 +279,11 @@ class MainController(
                                                 call.respond(HttpStatusCode.InternalServerError)
                                         }
                                     }, { team ->
-                                        call.respond(HttpStatusCode.OK, team.toDto())
+                                        if (team == null) {
+                                            call.respond(HttpStatusCode.OK)
+                                        } else {
+                                            call.respond(HttpStatusCode.OK, team.toDto())
+                                        }
                                     })
                             }
 

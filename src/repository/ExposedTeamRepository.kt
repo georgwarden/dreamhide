@@ -20,7 +20,7 @@ class ExposedTeamRepository : TeamRepository {
     override fun getAll(): List<Team> {
         return transaction {
             Teams.selectAll()
-                .map { row -> row.toTeam() }
+                .mapNotNull { row -> row.toTeam() }
         }
     }
 

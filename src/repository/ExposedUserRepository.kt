@@ -11,7 +11,7 @@ class ExposedUserRepository : UserRepository {
 
     override fun findByName(name: String): User? {
         return transaction {
-            Users.innerJoin(Teams)
+            Users.leftJoin(Teams)
                 .select {
                     Users.name eq name
                 }.firstOrNull()?.toUser()
@@ -20,7 +20,7 @@ class ExposedUserRepository : UserRepository {
 
     override fun findById(id: Int): User? {
         return transaction {
-            Users.innerJoin(Teams)
+            Users.leftJoin(Teams)
                 .select {
                     Users.id eq id
                 }.firstOrNull()?.toUser()

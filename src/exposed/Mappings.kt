@@ -13,13 +13,17 @@ fun ResultRow.toUser(): User {
     )
 }
 
-fun ResultRow.toTeam(): Team {
-    return Team(
-        this[Teams.id],
-        this[Teams.name],
-        this[Teams.avatar],
-        this[Teams.score]
-    )
+@Suppress("SENSELESS_COMPARISON")
+fun ResultRow.toTeam(): Team? {
+    return this.takeIf { row -> row[Teams.id] != null }
+        ?.run {
+            Team(
+                this[Teams.id],
+                this[Teams.name],
+                this[Teams.avatar],
+                this[Teams.score]
+            )
+        }
 }
 
 fun ResultRow.toTask(attachments: List<Attachment>): Task {
