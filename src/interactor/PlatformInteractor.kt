@@ -61,6 +61,8 @@ class PlatformInteractor(
             }
     }
 
-
+    fun editTask(delta: TaskDelta): Task {
+        return taskRepository.edit(delta)
+    }
 
 }

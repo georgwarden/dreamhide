@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import net.rocketparty.dto.*
 import net.rocketparty.dto.model.FullTaskInfoDto
 import net.rocketparty.dto.model.TaskCreationDto
+import net.rocketparty.dto.model.TaskDeltaDto
 import net.rocketparty.dto.model.TaskModelDto
 import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
@@ -366,7 +367,16 @@ class MainController(
                             }
 
                             patch {
-
+                                val delta = call.receive<TaskDeltaDto>()
+                                val task = withContext(Dispatchers.IO) {
+                                    platformInteractor.editTask(delta.toEntity())
+                                }
+                                call.respond(
+                                    TaskModelDto(
+                                        task.toInfo(),
+                                        task.toDescription()
+                                    )
+                                )
                             }
 
                             delete {}

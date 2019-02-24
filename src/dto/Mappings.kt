@@ -1,6 +1,7 @@
 package net.rocketparty.dto
 
 import net.rocketparty.dto.model.*
+import net.rocketparty.dto.model.TaskDeltaDto
 import net.rocketparty.entity.*
 
 fun User.toDto(): UserDto {
@@ -68,5 +69,16 @@ fun Task.toEssentials(solved: Boolean): TaskEssentialsDto {
     return TaskEssentialsDto(
         this.toInfo(),
         solved
+    )
+}
+
+fun TaskDeltaDto.toEntity(): TaskDelta {
+    return TaskDelta(
+        this.id,
+        this.title,
+        this.description,
+        this.categoryId,
+        this.reward,
+        this.attachments
     )
 }
