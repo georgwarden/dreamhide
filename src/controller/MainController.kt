@@ -132,9 +132,9 @@ class MainController(
                             }
                         }, { user ->
                             val token = if (user.isAdmin) {
-                                jwtInteractor.generateToken(user.id)
-                            } else {
                                 jwtInteractor.generateAdminToken()
+                            } else {
+                                jwtInteractor.generateToken(user.id)
                             }
                             call.respond(AuthorizationResponse(token))
                         })
