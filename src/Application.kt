@@ -65,6 +65,12 @@ fun main(args: Array<String>) {
             it[flag] = "12345678"
         }
 
+        Users.insert {
+            it[name] = "adminus"
+            it[passwordHash] = "25d55ad283aa400af464c76d713c07ad"
+            it[isAdmin] = true
+        }
+
     }
 
     val controller = koin.koinContext.get<MainController>()
