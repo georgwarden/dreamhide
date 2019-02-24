@@ -52,13 +52,6 @@ class PlatformInteractor(
     fun createTask(model: TaskCreation): Either<DomainError, Task> {
         return taskRepository.create(model)
             .wrap { DomainError.NotCreated }
-            .mapRight { id -> taskRepository.findById(id) }
-            .flatMap {
-                it.fold(
-                    { err -> Left(err) },
-                    { task -> task.wrap { DomainError.NotCreated } }
-                )
-            }
     }
 
     fun editTask(delta: TaskDelta): Task {

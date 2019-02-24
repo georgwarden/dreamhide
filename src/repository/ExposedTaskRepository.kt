@@ -37,15 +37,29 @@ class ExposedTaskRepository : TaskRepository {
         }
     }
 
-    override fun create(task: TaskCreation): Id? {
+    override fun create(taskModel: TaskCreation): Task? {
         return transaction {
-            Tasks.insert {
-                it[name] = task.title
-                it[description] = task.description
-                it[reward] = task.reward
-                it[category] = task.categoryId
-                it[flag] = task.flag
+            val taskId = Tasks.insert {
+                it[name] = taskModel.title
+                it[description] = taskModel.description
+                it[reward] = taskModel.reward
+                it[category] = taskModel.categoryId
+                it[flag] = taskModel.flag
             } get Tasks.id
+
+            taskId?.let { task ->
+                Attachments.batchInsert(taskModel.attachments) { content ->
+                    this[Attachments.content] = content
+                    this[Attachments.task] = task
+                }
+
+                val attachments = Attachments.select {
+                    Attachments.task eq task
+                }.map { row -> row.toAttachment() }
+                (Tasks innerJoin Categories).select {
+                    Tasks.id eq task
+                }.first().toTask(attachments)
+            }
         }
     }
 
@@ -80,5 +94,9 @@ class ExposedTaskRepository : TaskRepository {
                 Tasks.id eq delta.id
             }.first().toTask(attachments)
         }
+    }
+
+    private fun pickTask(taskId: Id) {
+
     }
 }
