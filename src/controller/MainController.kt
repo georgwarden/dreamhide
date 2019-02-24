@@ -51,12 +51,15 @@ class MainController(
     fun start(testing: Boolean) {
         embeddedServer(Netty, port = 8080) {
             install(Authentication) {
+
+                val jwtIssuer = jwtInteractor.getIssuer()
+                val jwtRealm = jwtInteractor.getRealm()
+                val jwtSecret = jwtInteractor.getSecret()
+
                 jwt(Configs.User) {
 
-                    val jwtIssuer = jwtInteractor.getIssuer()
-                    val jwtRealm = jwtInteractor.getRealm()
                     val jwtAudience = jwtInteractor.getAudience()
-                    val jwtSecret = jwtInteractor.getSecret()
+
                     val jwtVerifier = JWT.require(Algorithm.HMAC256(jwtSecret))
                         .withAudience(jwtAudience)
                         .withIssuer(jwtIssuer)
@@ -67,13 +70,28 @@ class MainController(
 
                     validate { credentials ->
                         credentials.payload
-                            .takeIf { jwtInteractor.validate(it) }
-                            ?.let { JWTPrincipal(it) }
+                            .takeIf(jwtInteractor::validate)
+                            ?.let(::JWTPrincipal)
                     }
                 }
 
                 jwt(Configs.Admin) {
 
+                    val jwtAudience = jwtInteractor.getAdminAudience()
+
+                    val jwtVerifier = JWT.require(Algorithm.HMAC256(jwtSecret))
+                        .withAudience(jwtAudience)
+                        .withIssuer(jwtIssuer)
+                        .build()
+
+                    realm = jwtRealm
+                    verifier(jwtVerifier)
+
+                    validate { credentials ->
+                        credentials.payload
+                            .takeIf(jwtInteractor::validateAdmin)
+                            ?.let(::JWTPrincipal)
+                    }
                 }
 
             }

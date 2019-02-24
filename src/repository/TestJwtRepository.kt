@@ -9,4 +9,7 @@ class TestJwtRepository : JwtRepository {
     override fun getRealm(): String = "dreamhide"
 
     override fun getSecret(): String = "old"
+
+    override fun getAdminAudience(): String = "admins"
+
 }

@@ -24,4 +24,15 @@ class JwtInteractor(
             .sign(Algorithm.HMAC256(getSecret()))
     }
 
+    fun validateAdmin(payload: Payload): Boolean {
+        return payload.audience.contains(getAdminAudience())
+    }
+
+    fun generateAdminToken(): Token {
+        return JWT.create()
+            .withAudience(getAdminAudience())
+            .withIssuer(getIssuer())
+            .sign(Algorithm.HMAC256(getSecret()))
+    }
+
 }

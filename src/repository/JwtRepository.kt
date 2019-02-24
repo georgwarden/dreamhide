@@ -7,4 +7,7 @@ interface JwtRepository {
     fun getRealm(): String
     fun getSecret(): String
 
+    fun getAdminAudience(): String
+
+
 }
