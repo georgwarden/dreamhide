@@ -34,6 +34,7 @@ import net.rocketparty.entity.DomainError
 import net.rocketparty.entity.Task
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
+import net.rocketparty.utils.Configs
 import net.rocketparty.utils.acquirePrincipal
 import net.rocketparty.utils.restore
 import java.time.Duration
@@ -50,7 +51,7 @@ class MainController(
     fun start(testing: Boolean) {
         embeddedServer(Netty, port = 8080) {
             install(Authentication) {
-                jwt("token-user") {
+                jwt(Configs.User) {
 
                     val jwtIssuer = jwtInteractor.getIssuer()
                     val jwtRealm = jwtInteractor.getRealm()
@@ -71,7 +72,7 @@ class MainController(
                     }
                 }
 
-                jwt("token-admin") {
+                jwt(Configs.Admin) {
 
                 }
 
@@ -120,7 +121,7 @@ class MainController(
                 post("/logout") {
                 }
 
-                authenticate("token-user") {
+                authenticate(Configs.User, Configs.Admin) {
 
                     route("/platform") {
 
@@ -311,7 +312,7 @@ class MainController(
                     }
                 }
 
-                authenticate("token-admin") {
+                authenticate(Configs.Admin) {
 
                     route("/admin") {
 
