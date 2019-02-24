@@ -131,7 +131,11 @@ class MainController(
                                     call.respond(HttpStatusCode.InternalServerError)
                             }
                         }, { user ->
-                            val token = jwtInteractor.generateToken(user.id)
+                            val token = if (user.isAdmin) {
+                                jwtInteractor.generateToken(user.id)
+                            } else {
+                                jwtInteractor.generateAdminToken()
+                            }
                             call.respond(AuthorizationResponse(token))
                         })
                 }

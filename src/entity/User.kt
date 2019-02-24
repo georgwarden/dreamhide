@@ -4,5 +4,6 @@ data class User(
     val id: Int,
     val name: String,
     val passwordHash: String,
-    val team: Team
+    val team: Team,
+    val isAdmin: Boolean = false
 )

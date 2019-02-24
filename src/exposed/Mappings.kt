@@ -8,7 +8,8 @@ fun ResultRow.toUser(): User {
         this[Users.id],
         this[Users.name],
         this[Users.passwordHash],
-        this.toTeam()
+        this.toTeam(),
+        this[Users.isAdmin]
     )
 }
 
