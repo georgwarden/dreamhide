@@ -32,7 +32,6 @@ import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.*
 import net.rocketparty.entity.DomainError
-import net.rocketparty.entity.Task
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
 import net.rocketparty.utils.Configs
@@ -158,10 +157,10 @@ class MainController(
                                 val taskId = call.request.queryParameters.getOrFail<Int>("id")
                                 coroutineScope {
                                     restore<DomainError, FullTaskInfoDto> {
-                                        val taskAsync = async {
+                                        val taskAsync = async(Dispatchers.IO) {
                                             platformInteractor.getTask(taskId).verify()
                                         }
-                                        val solvedAsync = async {
+                                        val solvedAsync = async(Dispatchers.IO) {
                                             val user = userInteractor.getUser(id).verify()
                                             user.team?.let { team ->
                                                 platformInteractor.isSolved(taskId, team)
@@ -196,21 +195,19 @@ class MainController(
                                     .payload
                                     .getClaim(Claims.UserId)
                                     .asInt()
-                                val (tasks, maybeSolutions) = withContext(Dispatchers.IO) {
-                                    coroutineScope {
-                                        val tasks = async {
-                                            platformInteractor.getTasks()
-                                        }
-                                        val solutions = async {
-                                            userInteractor.getUser(id)
-                                                .mapRight { user ->
-                                                    user.team?.run {
-                                                        platformInteractor.getSolutionsOf(id)
-                                                    } ?: emptyList()
-                                                }
-                                        }
-                                        tasks.await() to solutions.await()
+                                val (tasks, maybeSolutions) = coroutineScope {
+                                    val tasks = async(Dispatchers.IO) {
+                                        platformInteractor.getTasks()
                                     }
+                                    val solutions = async(Dispatchers.IO) {
+                                        userInteractor.getUser(id)
+                                            .mapRight { user ->
+                                                user.team?.run {
+                                                    platformInteractor.getSolutionsOf(id)
+                                                } ?: emptyList()
+                                            }
+                                    }
+                                    tasks.await() to solutions.await()
                                 }
                                 maybeSolutions.mapRight { solutions -> solutions.toHashSet() }
                                     .mapRight { solutions ->
@@ -306,11 +303,11 @@ class MainController(
                                 .asInt()
                             coroutineScope {
                                 restore<DomainError, Boolean> {
-                                    val team = async {
+                                    val team = async(Dispatchers.IO) {
                                         userInteractor.getUser(userId)
                                     }.await()
                                         .verify()
-                                    async {
+                                    async(Dispatchers.IO) {
                                         platformInteractor.attempt(team.id, taskId, flag)
                                     }.await()
                                         .verify().also { correct ->
@@ -368,9 +365,7 @@ class MainController(
 
                             patch {
                                 val delta = call.receive<TaskDeltaDto>()
-                                val task = withContext(Dispatchers.IO) {
-                                    platformInteractor.editTask(delta.toEntity())
-                                }
+                                val task = platformInteractor.editTask(delta.toEntity())
                                 call.respond(
                                     TaskModelDto(
                                         task.toInfo(),
@@ -393,9 +388,7 @@ class MainController(
                                 // ```
                                 // will dispatch to (1), while it could safely (?) dispatch to (2).
                                 val taskId = call.request.queryParameters.getOrFail<Int>("id")
-                                withContext(Dispatchers.IO) {
-                                    platformInteractor.deleteTask(taskId)
-                                }
+                                platformInteractor.deleteTask(taskId)
                                 call.respond(HttpStatusCode.OK)
                             }
 

@@ -1,5 +1,7 @@
 package net.rocketparty.interactor
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.rocketparty.entity.*
 import net.rocketparty.repository.CategoryRepository
 import net.rocketparty.repository.SolutionRepository
@@ -29,8 +31,10 @@ class PlatformInteractor(
         return solutionRepository.findAllTasksSolvedByTeam(teamId)
     }
 
-    fun getCategories(): List<Category> {
-        return categoryRepository.findAll()
+    suspend fun getCategories(): List<Category> {
+        return withContext(Dispatchers.IO) {
+            categoryRepository.findAll()
+        }
     }
 
     fun attempt(byTeam: Id, task: Id, flag: String): Either<DomainError, Boolean> {
@@ -49,17 +53,23 @@ class PlatformInteractor(
 
     // subjects to be moved to some AdminInteractor
 
-    fun createTask(model: TaskCreation): Either<DomainError, Task> {
-        return taskRepository.create(model)
-            .wrap { DomainError.NotCreated }
+    suspend fun createTask(model: TaskCreation): Either<DomainError, Task> {
+        return withContext(Dispatchers.IO) {
+            taskRepository.create(model)
+                .wrap { DomainError.NotCreated }
+        }
     }
 
-    fun editTask(delta: TaskDelta): Task {
-        return taskRepository.edit(delta)
+    suspend fun editTask(delta: TaskDelta): Task {
+        return withContext(Dispatchers.IO) {
+            taskRepository.edit(delta)
+        }
     }
 
-    fun deleteTask(id: Id) {
-        taskRepository.delete(id)
+    suspend fun deleteTask(id: Id) {
+        withContext(Dispatchers.IO) {
+            taskRepository.delete(id)
+        }
     }
 
 }
