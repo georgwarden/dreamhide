@@ -22,6 +22,7 @@ import io.ktor.util.getOrFail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import net.rocketparty.dto.*
 import net.rocketparty.dto.model.FullTaskInfoDto
 import net.rocketparty.dto.model.TaskCreationDto
@@ -302,14 +303,12 @@ class MainController(
                                 .asInt()
                             coroutineScope {
                                 restore<DomainError, Boolean> {
-                                    val team = async(Dispatchers.IO) {
+                                    val team = withContext(Dispatchers.IO) {
                                         userInteractor.getUser(userId)
-                                    }.await()
-                                        .verify()
-                                    async(Dispatchers.IO) {
+                                    }.verify()
+                                    withContext(Dispatchers.IO) {
                                         platformInteractor.attempt(team.id, taskId, flag)
-                                    }.await()
-                                        .verify().also { correct ->
+                                    }.verify().also { correct ->
                                             if (correct)
                                                 platformInteractor.solve(team.id, taskId)
                                         }
