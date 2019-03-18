@@ -9,4 +9,5 @@ val DomainModule = module {
     single { TeamInteractor(get()) }
     single { PlatformInteractor(get(), get(), get()) }
     single { JwtInteractor(get()) }
+    single { EventInteractor() }
 }

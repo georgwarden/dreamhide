@@ -14,6 +14,7 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.response.respondTextWriter
 import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -45,7 +46,8 @@ class MainController(
     private val userInteractor: UserInteractor,
     private val teamInteractor: TeamInteractor,
     private val platformInteractor: PlatformInteractor,
-    private val jwtInteractor: JwtInteractor
+    private val jwtInteractor: JwtInteractor,
+    private val eventInteractor: EventInteractor
 ) {
 
     fun start(testing: Boolean) {
@@ -333,7 +335,19 @@ class MainController(
                             }
                         }
 
-                        get("/subscribe") {}
+                        get("/subscribe") {
+                            val id = acquirePrincipal<JWTPrincipal>()
+                                .payload
+                                .getClaim(Claims.UserId)
+                                .asInt()
+                            call.respondTextWriter {
+                                val source = eventInteractor.subscribe(id)
+                                for (event in source) {
+                                    write(event.toString())
+                                }
+                                close()
+                            }
+                        }
                     }
                 }
 
