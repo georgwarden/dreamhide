@@ -22,7 +22,6 @@ import io.ktor.util.getOrFail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import net.rocketparty.dto.*
 import net.rocketparty.dto.model.FullTaskInfoDto
 import net.rocketparty.dto.model.TaskCreationDto
@@ -365,13 +364,17 @@ class MainController(
 
                             patch {
                                 val delta = call.receive<TaskDeltaDto>()
-                                val task = platformInteractor.editTask(delta.toEntity())
-                                call.respond(
-                                    TaskModelDto(
-                                        task.toInfo(),
-                                        task.toDescription()
+                                if (delta.reward != null) {
+                                    call.respond(HttpStatusCode.NotImplemented)
+                                } else {
+                                    val task = platformInteractor.editTask(delta.toEntity())
+                                    call.respond(
+                                        TaskModelDto(
+                                            task.toInfo(),
+                                            task.toDescription()
+                                        )
                                     )
-                                )
+                                }
                             }
 
                             delete {
