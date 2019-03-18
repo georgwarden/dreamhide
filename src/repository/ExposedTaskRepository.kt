@@ -69,11 +69,11 @@ class ExposedTaskRepository : TaskRepository {
                 where = {
                     Tasks.id eq delta.id
                 }
-            ) {
-                delta.title?.let { title -> it[Tasks.name] = title }
-                delta.description?.let { description -> it[Tasks.description] = description }
-                delta.reward?.let { reward -> it[Tasks.reward] = reward }
-                delta.categoryId?.let { category -> it[Tasks.category] = category }
+            ) { query ->
+                delta.title?.let { title -> query[Tasks.name] = title }
+                delta.description?.let { description -> query[Tasks.description] = description }
+                delta.reward?.let { reward -> query[Tasks.reward] = reward }
+                delta.categoryId?.let { category -> query[Tasks.category] = category }
             }
 
             delta.attachments?.let { attachments ->
