@@ -1,12 +1,27 @@
 package net.rocketparty.interactor
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.launch
 import net.rocketparty.entity.Id
+import net.rocketparty.event.Broadcast
+import net.rocketparty.repository.EventsRepository
 
-class EventInteractor {
+class EventInteractor(
+    private val eventsRepository: EventsRepository,
+    private val scope: CoroutineScope
+) {
 
-    fun subscribe(userId: Id): Channel<Any> {
-        TODO()
+    suspend fun subscribe(userId: Id): ReceiveChannel<Broadcast> {
+        val channel = Channel<Broadcast>()
+
+        scope.launch {
+            for (event in eventsRepository.adminBroadcast())
+                channel.send(event)
+        }
+
+        return channel
     }
 
 }

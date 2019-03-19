@@ -22,6 +22,12 @@ sourceSets {
     test.resources.srcDirs = ['testresources']
 }
 
+sourceSets.all {
+    languageSettings {
+        useExperimentalAnnotation('kotlinx.coroutines.ExperimentalCoroutinesApi')
+    }
+}
+
 repositories {
     mavenLocal()
     jcenter()

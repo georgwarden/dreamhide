@@ -2,6 +2,7 @@ package net.rocketparty.controller
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
@@ -14,7 +15,6 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.response.respondTextWriter
 import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -33,6 +33,7 @@ import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.*
 import net.rocketparty.entity.DomainError
+import net.rocketparty.event.subscribe
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
 import net.rocketparty.utils.Configs
@@ -47,7 +48,8 @@ class MainController(
     private val teamInteractor: TeamInteractor,
     private val platformInteractor: PlatformInteractor,
     private val jwtInteractor: JwtInteractor,
-    private val eventInteractor: EventInteractor
+    private val eventInteractor: EventInteractor,
+    private val gson: Gson
 ) {
 
     fun start(testing: Boolean) {
@@ -335,19 +337,7 @@ class MainController(
                             }
                         }
 
-                        get("/subscribe") {
-                            val id = acquirePrincipal<JWTPrincipal>()
-                                .payload
-                                .getClaim(Claims.UserId)
-                                .asInt()
-                            call.respondTextWriter {
-                                val source = eventInteractor.subscribe(id)
-                                for (event in source) {
-                                    write(event.toString())
-                                }
-                                close()
-                            }
-                        }
+                        subscribe(gson, eventInteractor)
                     }
                 }
 
