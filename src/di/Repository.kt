@@ -10,4 +10,5 @@ val RepositoryModule = module {
     single { ExposedSolutionRepository() as SolutionRepository }
     single { ExposedCategoriesRepository() as CategoryRepository }
     single { TestJwtRepository() as JwtRepository }
+    single { EventsRepository() }
 }

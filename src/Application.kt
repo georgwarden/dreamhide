@@ -5,6 +5,7 @@ import net.rocketparty.controller.MainController
 import net.rocketparty.di.ControllerModule
 import net.rocketparty.di.DomainModule
 import net.rocketparty.di.RepositoryModule
+import net.rocketparty.di.SerializationModule
 import net.rocketparty.exposed.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -18,7 +19,8 @@ fun main(args: Array<String>) {
         listOf(
             RepositoryModule,
             DomainModule,
-            ControllerModule
+            ControllerModule,
+            SerializationModule
         )
     )
 
