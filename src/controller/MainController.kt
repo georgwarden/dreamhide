@@ -33,6 +33,7 @@ import net.rocketparty.dto.request.AttemptRequest
 import net.rocketparty.dto.request.AuthorizationRequest
 import net.rocketparty.dto.response.*
 import net.rocketparty.entity.DomainError
+import net.rocketparty.event.adminBroadcast
 import net.rocketparty.event.subscribe
 import net.rocketparty.interactor.*
 import net.rocketparty.utils.Claims
@@ -344,6 +345,8 @@ class MainController(
                 authenticate(Configs.Admin) {
 
                     route("/admin") {
+
+                        adminBroadcast(eventInteractor)
 
                         route("/task") {
 

@@ -24,4 +24,8 @@ class EventInteractor(
         return channel
     }
 
+    suspend fun adminBroadcast(message: Broadcast) {
+        eventsRepository.doAdminBroadcast(message)
+    }
+
 }
